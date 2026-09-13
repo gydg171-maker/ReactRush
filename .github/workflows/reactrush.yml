@@ -5,7 +5,7 @@ on:
 
   schedule:
     # 11:20 PM Egypt (UTC+3)
-    - cron: "20 20 * * *"
+    - cron: "50 20 * * *"
 
     # 2:00 AM Egypt (UTC+3)
     - cron: "0 23 * * *"
@@ -73,6 +73,7 @@ jobs:
           DRIVE_TOKEN_JSON: ${{ secrets.DRIVE_TOKEN_JSON }}
         run: |
           printf '%s' "$DRIVE_TOKEN_JSON" > "$HOME/.reactrush/drive_token.json"
+          test -s "$HOME/.reactrush/drive_token.json"
 
       # ========================================================
       # YOUTUBE TOKEN
@@ -82,17 +83,29 @@ jobs:
           YOUTUBE_TOKEN_JSON: ${{ secrets.YOUTUBE_TOKEN_JSON }}
         run: |
           printf '%s' "$YOUTUBE_TOKEN_JSON" > "$HOME/.reactrush/youtube_token.json"
+          test -s "$HOME/.reactrush/youtube_token.json"
 
       # ========================================================
       # RUN REACTRUSH
       # ========================================================
       - name: Run ReactRush
         env:
-          DRIVE_TOKEN_PATH: ${{ github.workspace }}/drive_token.json
-          YOUTUBE_TOKEN_PATH: ${{ github.workspace }}/youtube_token.json
+          # IMPORTANT:
+          # reactrush.py reads DRIVE_TOKEN_FILE / YOUTUBE_TOKEN_FILE.
+          DRIVE_TOKEN_FILE: /home/runner/.reactrush/drive_token.json
+          YOUTUBE_TOKEN_FILE: /home/runner/.reactrush/youtube_token.json
+
+          # Keep the actual runtime files in the exact same place we create them.
+          HOME: /home/runner
         run: |
           echo "=============================================="
           echo "REACTRUSH"
           echo "=============================================="
+
+          echo "Drive token:"
+          ls -lh "$HOME/.reactrush/drive_token.json"
+
+          echo "YouTube token:"
+          ls -lh "$HOME/.reactrush/youtube_token.json"
 
           python reactrush.py
